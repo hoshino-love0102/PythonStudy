@@ -10,22 +10,12 @@ mpl.rcParams['axes.unicode_minus'] = False
 class Exchange:
     def __init__(self, name):
         self.name = name
-<<<<<<< HEAD
         self.opens = []
         self.highs = []
         self.lows = []
         self.closes = []
-=======
-        self.opens = []   # 시가
-        self.highs = []   # 고가
-        self.lows = []    # 저가
-        self.closes = []  # 종가(리스트 마지막 가격)
-<<<<<<< HEAD
->>>>>>> 3a0f7567fde13d13a9401cc2fd9ef541e62c76f2
         self.holding = 0
         self.buy_price_total = 0
-=======
->>>>>>> master
 
         start = random.randint(900, 1100)
         self.opens.append(start)
@@ -61,7 +51,6 @@ class Exchange:
     def get_price(self):
         return self.closes[-1]
 
-<<<<<<< HEAD
     def buy(self, amount, user_money):
         price = self.get_price()
         total = price * amount
@@ -82,8 +71,6 @@ class Exchange:
             return total_income, price, profit
         return 0, price, 0
 
-=======
->>>>>>> master
 def simulate_all_prices(exchanges):
     for ex in exchanges:
         ex.simulate_price()
@@ -92,7 +79,6 @@ def show_all_status(exchanges):
     data = []
     for ex in exchanges:
         current_price = ex.get_price()
-<<<<<<< HEAD
         holding = ex.holding
         value = round(current_price * holding, 2)
         data.append({
@@ -100,11 +86,6 @@ def show_all_status(exchanges):
             '현재가': current_price,
             '보유량': holding,
             '평가금액': value
-=======
-        data.append({
-            '이름': ex.name,
-            '현재가': current_price
->>>>>>> master
         })
     df = pd.DataFrame(data)
     print("\n[투자소 현황]")
@@ -137,10 +118,7 @@ def show_chart(exchange, exchanges):
 
 def main():
     exchanges = [Exchange(name) for name in ["A소", "B소", "C소", "D소", "E소"]]
-<<<<<<< HEAD
     user_money = 10000
-=======
->>>>>>> master
 
     for _ in range(20):
         simulate_all_prices(exchanges)
@@ -149,17 +127,12 @@ def main():
         print("\n===== 투자 시뮬레이터 메뉴 =====")
         print("1. 전체 시세 보기")
         print("2. 주가 차트 보기 (실시간)")
-<<<<<<< HEAD
         print("3. 매수")
         print("4. 매도")
         print("5. 내 자산 현황")
         print("0. 종료")
         print("==========================")
         print(f"현재 보유 자금: {round(user_money, 2)}원")
-=======
-        print("0. 종료")
-        print("==========================")
->>>>>>> master
 
         choice = input("선택: ")
 
@@ -173,7 +146,6 @@ def main():
             if 0 <= idx < len(exchanges):
                 show_chart(exchanges[idx], exchanges)
 
-<<<<<<< HEAD
         elif choice == "3":
             simulate_all_prices(exchanges)
             for i, ex in enumerate(exchanges):
@@ -211,8 +183,6 @@ def main():
             show_all_status(exchanges)
             print(f"보유 현금: {round(user_money, 2)}원")
 
-=======
->>>>>>> master
         elif choice == "0":
             print("시뮬레이터 종료!")
             break
@@ -221,12 +191,4 @@ def main():
             print("잘못된 입력!")
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     main()
-=======
-<<<<<<< HEAD
-    main()
-=======
-    main()
->>>>>>> master
->>>>>>> 3a0f7567fde13d13a9401cc2fd9ef541e62c76f2
