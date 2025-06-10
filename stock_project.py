@@ -10,10 +10,10 @@ mpl.rcParams['axes.unicode_minus'] = False
 class Exchange:
     def __init__(self, name):
         self.name = name
-        self.opens = []   # 시가
-        self.highs = []   # 고가
-        self.lows = []    # 저가
-        self.closes = []  # 종가(리스트 마지막 가격)
+        self.opens = []
+        self.highs = []
+        self.lows = []
+        self.closes = []
         self.holding = 0
         self.buy_price_total = 0
 
@@ -30,6 +30,18 @@ class Exchange:
         close_price = round(open_price * (1 + change), 2)
         high_price = round(max(open_price, close_price) * (1 + random.uniform(0, 0.03)), 2)
         low_price = round(min(open_price, close_price) * (1 - random.uniform(0, 0.03)), 2)
+
+        reason = ""
+        if change > 0.05:
+            reason = "호재 뉴스로 인해 급등"
+        elif change > 0:
+            reason = "긍정적 시장 반응"
+        elif change < -0.05:
+            reason = "악재 뉴스로 인해 급락"
+        else:
+            reason = "부정적 시장 반응"
+
+        print(f"[{self.name}] 변동 사유: {reason} ({'+' if change >= 0 else ''}{round(change * 100, 2)}%) → 종가 {close_price}원")
 
         self.opens.append(open_price)
         self.highs.append(high_price)
