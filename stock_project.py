@@ -24,17 +24,18 @@ class Exchange:
 
         # 시작 시 랜덤한 가격으로 캔들 초기화
         start = random.randint(900, 1100)
-        self.opens.append(start)
-        self.highs.append(start)
-        self.lows.append(start)
-        self.closes.append(start)
+        self.opens.append(start) # 캔들 시가
+        self.highs.append(start) # 캔들 고가
+        self.lows.append(start) # 캔들 저가
+        self.closes.append(start) # 캔들 종가
 
     def simulate_price(self):
         # 시세를 변동시켜 새로운 캔들(시가, 고가, 저가, 종가)을 생성합니다. 변동 이유 터미널에 출력
-        last_close = self.closes[-1]
-        open_price = last_close
+        last_close = self.closes[-1] # 마지막 종가를 기준으로 변동
+        open_price = last_close # 캔들 시가
         change = random.uniform(-0.1, 0.1)  # -10% ~ +10%
-        close_price = round(open_price * (1 + change), 2)
+        close_price = round(open_price * (1 + change), 2) # 종가
+        # 고가와 저가는 시가와 종가를 기준으로 3% 이내로 변동
         high_price = round(max(open_price, close_price) * (1 + random.uniform(0, 0.03)), 2)
         low_price = round(min(open_price, close_price) * (1 - random.uniform(0, 0.03)), 2)
 
@@ -52,10 +53,10 @@ class Exchange:
         print(f"[{self.name}] 변동 사유: {reason} ({'+' if change >= 0 else ''}{round(change * 100, 2)}%) → 종가 {close_price}원")
 
         # 시세 데이터 저장
-        self.opens.append(open_price)
-        self.highs.append(high_price)
-        self.lows.append(low_price)
-        self.closes.append(close_price)
+        self.opens.append(open_price) # 캔들 시가
+        self.highs.append(high_price) # 캔들 고가
+        self.lows.append(low_price) # 캔들 저가
+        self.closes.append(close_price) # 캔들 종가
 
     def get_price(self):
         #현재 투자소의 마지막(최신) 종가를 반환합니다.
@@ -124,17 +125,17 @@ def show_chart(exchange, exchanges):
         ax.set_xlabel("시간")
         ax.set_ylabel("가격")
 
-        opens = exchange.opens
-        highs = exchange.highs
-        lows = exchange.lows
-        closes = exchange.closes
+        opens = exchange.opens # 캔들 시가
+        highs = exchange.highs # 캔들 고가
+        lows = exchange.lows # 캔들 저가
+        closes = exchange.closes # 캔들 종가
 
         for idx in range(len(opens)):
             color = 'red' if closes[idx] > opens[idx] else 'blue'
-            ax.plot([idx, idx], [lows[idx], highs[idx]], color=color)
-            ax.plot([idx, idx], [opens[idx], closes[idx]], color=color, linewidth=6)
+            ax.plot([idx, idx], [lows[idx], highs[idx]], color=color) #캔들 얇은거
+            ax.plot([idx, idx], [opens[idx], closes[idx]], color=color, linewidth=6) #캔들 굵은거
 
-    ani = FuncAnimation(fig, animate, interval=500)
+    ani = FuncAnimation(fig, animate, interval=3000)
     plt.tight_layout()
     plt.show()
 
@@ -196,20 +197,20 @@ def main():
                 print(f"{i}. {ex.name} (보유량: {ex.holding})")
             idx = int(input("매도할 투자소 번호 입력: "))
             amount = int(input("몇 개 팔래? "))
-            if 0 <= idx < len(exchanges):
+            if 0 <= idx < len(exchanges): # 투자소 번호 유효성 검사
                 income, price, profit = exchanges[idx].sell(amount)
-                if income > 0:
-                    user_money += income
-                    print(f"{round(income, 2)}원 받고 {amount}개 매도함.")
+                if income > 0: # 매도 성공
+                    user_money += income # 매도 수익을 잔액에 추가
+                    print(f"{round(income, 2)}원 받고 {amount}개 매도함.") 
                     print(f"수익: +{round(income, 2)}원 / 잔액: {round(user_money, 2)}원")
                     print(f"매도 당시 가격: {round(price, 2)}원")
-                    print(f"손익: {'+' if profit >= 0 else ''}{round(profit, 2)}원")
+                    print(f"손익: {'+' if profit >= 0 else ''}{round(profit, 2)}원") #음수는 자동으로 붙음
                 else:
                     print("보유량 부족!")
 
         elif choice == "5":
             # 내 자산 현황: 투자소별 평가금액, 현금 출력
-            show_all_status(exchanges)
+            show_all_status(exchanges) # 투자소별 현황 출력
             print(f"보유 현금은 {round(user_money, 2)}원입니다.")
 
         elif choice == "0":
