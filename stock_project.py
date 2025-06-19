@@ -1,113 +1,118 @@
-import random            # 시세 변동, 시작 가격 등에서 랜덤 값을 생성할 때
-import pandas as pd      # 투자소별 상태(이름, 현재가, 보유량 등)를 표 형태로 출력할 때
-import matplotlib.pyplot as plt   # 투자소의 시세 변동을 그래프로 시각화할 때
-import matplotlib as mpl          # 한글 폰트 & 그래프 설정(폰트, 마이너스 표시 등)
-from matplotlib.animation import FuncAnimation  # 실시간 캔들 차트(움직이는거) 구현
+# 필요한 외부 라이브러리 임포트
+import random                       # 무작위 수 생성에 사용
+import pandas as pd                # 투자소 상태를 테이블로 보기 좋게 출력할 때 사용
+import matplotlib.pyplot as plt    # 가격 변동 그래프 그릴 때 사용
+import matplotlib as mpl           # 그래프 한글 폰트 깨짐 방지용 설정
+from matplotlib.animation import FuncAnimation  # 실시간 차트 애니메이션용
+import time                        # 시간 지연 (예: 3초 대기) 등에 사용
 
-
-# 한글 폰트 및 마이너스 부호 깨짐 방지 설정
+# 한글 폰트 설정 (macOS용 설정)
 mpl.rcParams['font.family'] = 'AppleGothic'
-mpl.rcParams['axes.unicode_minus'] = False
+mpl.rcParams['axes.unicode_minus'] = False  # 음수 부호 깨짐 방지
 
-
+# 투자소 클래스 정의
 class Exchange:
-    #각 투자소(거래소)의 시세와 거래 내역, 보유 상태를 관리하는 클래스입니다.
     def __init__(self, name):
-        # 투자소 이름
-        self.name = name
-        # 시가, 고가, 저가, 종가(캔들차트용) 리스트
+        self.name = name  # 투자소 이름
+        # 캔들 차트용 시가/고가/저가/종가 리스트
         self.opens = []
         self.highs = []
         self.lows = []
         self.closes = []
-        # 보유량과 누적 매수 금액
-        self.holding = 0
-        self.buy_price_total = 0
+        
+        # 보유 상태 관련 변수
+        self.holding = 0  # 보유한 개수
+        self.buy_price_total = 0  # 누적 매수 금액 (평균 단가 계산용)
 
-
-        # 시작 시 랜덤한 가격으로 캔들 초기화
+        # 시작 가격 랜덤 설정 (900~1100원 사이)
         start = random.randint(900, 1100)
         self.opens.append(start)
         self.highs.append(start)
         self.lows.append(start)
         self.closes.append(start)
 
+    # 가격 변동 사유와 변동폭을 준비하는 함수
+    def prepare_price_change(self):
+        reasons = [
+            ("외국인 투자자 대규모 매수", lambda ch: "호재 뉴스로 인해 급등", random.uniform(0.06, 0.1)),
+            ("정부 규제 완화 발표", lambda ch: "긍정적 시장 반응", random.uniform(0.03, 0.06)),
+            ("시장 관망세", lambda ch: "부정적 시장 반응" if ch < 0 else "긍정적 시장 반응", random.uniform(-0.03, 0.03)),
+            ("금리 인상 우려", lambda ch: "부정적 시장 반응", random.uniform(-0.06, -0.03)),
+            ("악재 뉴스 유포", lambda ch: "악재 뉴스로 인해 급락", random.uniform(-0.1, -0.06))
+        ]
+        return random.choice(reasons)
 
-    def simulate_price(self):
-        # 시세를 변동시켜 새로운 캔들(시가, 고가, 저가, 종가)을 생성합니다. 변동 이유 터미널에 출력
+    # 선택된 변동폭과 해설로 시세 반영
+    def apply_price_change(self, reason_func, change):
         last_close = self.closes[-1]
         open_price = last_close
-        change = random.uniform(-0.1, 0.1)  # -10% ~ +10%
         close_price = round(open_price * (1 + change), 2)
         high_price = round(max(open_price, close_price) * (1 + random.uniform(0, 0.03)), 2)
         low_price = round(min(open_price, close_price) * (1 - random.uniform(0, 0.03)), 2)
 
-
-        # 변동 사유 설명 문자열
-        reason = ""
-        if change > 0.05:
-            reason = "호재 뉴스로 인해 급등"
-        elif change > 0:
-            reason = "긍정적 시장 반응"
-        elif change < -0.05:
-            reason = "악재 뉴스로 인해 급락"
-        else:
-            reason = "부정적 시장 반응"
-
-
+        reason = reason_func(change)
         print(f"[{self.name}] 변동 사유: {reason} ({'+' if change >= 0 else ''}{round(change * 100, 2)}%) → 종가 {close_price}원")
 
-
-        # 시세 데이터 저장
+        # 캔들 데이터 저장
         self.opens.append(open_price)
         self.highs.append(high_price)
         self.lows.append(low_price)
         self.closes.append(close_price)
 
+    # 단순한 랜덤 시세 변동 (빠르게 반영할 때 사용)
+    def simulate_price_quick(self):
+        last_close = self.closes[-1]
+        open_price = last_close
+        change = random.uniform(-0.1, 0.1)
+        close_price = round(open_price * (1 + change), 2)
+        high_price = round(max(open_price, close_price) * (1 + random.uniform(0, 0.03)), 2)
+        low_price = round(min(open_price, close_price) * (1 - random.uniform(0, 0.03)), 2)
 
+        self.opens.append(open_price)
+        self.highs.append(high_price)
+        self.lows.append(low_price)
+        self.closes.append(close_price)
+
+    # 현재 종가 반환
     def get_price(self):
-        #현재 투자소의 마지막(최신) 종가를 반환합니다.
         return self.closes[-1]
 
+    # 매수 기능
+    def buy(self, amount, user_money):
+        price = self.get_price() # 현재 종가
+        total = price * amount # 매수 총액
+        if user_money >= total:
+            self.holding += amount # 보유량 증가
+            self.buy_price_total += total # 누적 매수 금액 증가
+            return total, price  # 총 지출 금액과 단가 반환
+        return 0, price
 
-    def buy(self, amount, user_money): # 개수만큼 매수
-        # user_money는 사용자가 가지고 있는 자금
-        price = self.get_price()
-        total = price * amount
-        if user_money >= total: # 자금이 충분하면 보유량, 총매수금액 증가, 실제 매수 금액과 가격 반환
-            self.holding += amount
-            self.buy_price_total += total
-            return total, price
-        return 0, price # 자금 부족하면 (0, 현재가) 반환
-    
     # 매도 기능
     def sell(self, amount):
-        # 매도 수익, 매도 가격, 손익(수익-매입가)을 반환
         price = self.get_price()
-        if self.holding >= amount:  # 보유량이 충분할 때만 매도 가능
-            self.holding -= amount  # 내가 가진 개수에서 팔려고 한 개수만큼 빼기
-            total_income = price * amount # (현재 가격 * 판 개수)해서 현재 매도를 통해 들어오는 총 금액 계산
-
-
-            total_quantity = self.holding + amount # 매도하고 남은거 + 판거 개수 == 매도 직전 총 보유량
-            if total_quantity > 0:
-                avg_buy_price = self.buy_price_total / total_quantity
-            else:
-                avg_buy_price = 0
-            profit = total_income - (avg_buy_price * amount)
+        if self.holding >= amount:
+            self.holding -= amount
+            total_income = price * amount # 총 매도 금액
+            total_quantity = self.holding + amount  # 기존 총 개수
+            avg_buy_price = self.buy_price_total / total_quantity if total_quantity > 0 else 0 # 평균 매수 단가
+            profit = total_income - (avg_buy_price * amount) 
             self.buy_price_total -= avg_buy_price * amount
             return total_income, price, profit
-        return 0, price, 0 # - 보유량 부족 시 (0, 현재가, 0) 반환
+        return 0, price, 0
 
 
-def simulate_all_prices(exchanges):
-    #모든 투자소의 시세를 1회씩 갱신 (시간 동기화)
-    for ex in exchanges:
-        ex.simulate_price()
 
 
+# 전체 투자소 가격을 시뮬레이션하는 함수
+def simulate_all_prices(exchanges, skip_idx=None, selected_change=None, selected_func=None):
+    for i, ex in enumerate(exchanges):
+        if i == skip_idx:
+            ex.apply_price_change(selected_func, selected_change)
+        else:
+            ex.simulate_price_quick()
+
+# 현재 전체 투자소 상태 출력
 def show_all_status(exchanges):
-    #각 투자소별 현재가, 보유량, 평가금액을 표 형태로 콘솔에 출력합니다.
     data = []
     for ex in exchanges:
         current_price = ex.get_price()
@@ -124,49 +129,48 @@ def show_all_status(exchanges):
     print(df)
     print()
 
-
+# 특정 투자소의 캔들 차트 시각화
 def show_chart(exchange, exchanges):
-    # 특정 투자소의 실시간 캔들차트를 matplotlib 애니메이션으로 보여줍니다.
-    # 차트 갱신 시 모든 투자소 시세도 함께 갱신됨
     fig, ax = plt.subplots()
 
-
     def animate(i):
-        simulate_all_prices(exchanges)
+        # 1. 현재 차트 대상 투자소에서 시세 변동 이유와 변화율 준비
+        evidence, reason_func, change = exchange.prepare_price_change()
+        exchange.apply_price_change(reason_func, change)
+        for ex in exchanges:
+            if ex != exchange:
+                ex.simulate_price_quick()
         ax.clear()
         ax.set_title(f"{exchange.name} 실시간 캔들차트")
         ax.set_xlabel("시간")
         ax.set_ylabel("가격")
-
 
         opens = exchange.opens
         highs = exchange.highs
         lows = exchange.lows
         closes = exchange.closes
 
-
+        # 각 시간별 캔들 차트 그리기
         for idx in range(len(opens)):
             color = 'red' if closes[idx] > opens[idx] else 'blue'
-            ax.plot([idx, idx], [lows[idx], highs[idx]], color=color)
-            ax.plot([idx, idx], [opens[idx], closes[idx]], color=color, linewidth=6)
-
-
-    ani = FuncAnimation(fig, animate, interval=500)
-    plt.tight_layout()
+            ax.plot([idx, idx], [lows[idx], highs[idx]], color=color)  # 고가~저가
+            ax.plot([idx, idx], [opens[idx], closes[idx]], color=color, linewidth=6)  # 시가~종가
+    # cache_frame_data=False로 설정해서 프레임 항상 새로고침
+    ani = FuncAnimation(fig, animate, interval=3000, cache_frame_data=False)
+    plt.tight_layout() # 차트 레이아웃 조정
     plt.show()
 
-
+# 메인 실행 함수
 def main():
-    # - 투자소 초기화, 사용자 입력 받아 각 기능 실행
-    exchanges = [Exchange(name) for name in ["A소", "B소", "C소", "D소", "E소"]]
-    user_money = 10000  # 시작 자금
+    exchanges = [Exchange(name) for name in ["A소", "B소", "C소", "D소", "E소"]]  # 투자소 5개 초기화
+    user_money = 10000  # 초기 자금
 
-
-    # 초반 20회 시세 미리 생성
+    # 시세 초기화
     for _ in range(20):
-        simulate_all_prices(exchanges)
+        for ex in exchanges:
+            ex.simulate_price_quick()
 
-
+    # 사용자 인터랙션 루프
     while True:
         print("\n===== 투자 시뮬레이터 메뉴 =====")
         print("1. 전체 시세 보기")
@@ -178,76 +182,77 @@ def main():
         print("==========================")
         print(f"현재 보유 자금: {round(user_money, 2)}원")
 
-
         choice = input("선택: ")
 
-
+        # 각 메뉴에 따라 기능 분기
         if choice == "1":
-            # 전체 투자소 현황 출력
             show_all_status(exchanges)
 
-
         elif choice == "2":
-            # 실시간 차트: 투자소 선택 후 차트 시각화
             for i, ex in enumerate(exchanges):
                 print(f"{i}. {ex.name}")
             idx = int(input("차트 볼 투자소 번호 입력: "))
             if 0 <= idx < len(exchanges):
                 show_chart(exchanges[idx], exchanges)
 
-
         elif choice == "3":
-            # 매수: 투자소 선택, 수량 입력, 실제 매수 처리
-            simulate_all_prices(exchanges)
+            # 모든 투자소의 이름과 현재 가격 출력
             for i, ex in enumerate(exchanges):
                 print(f"{i}. {ex.name} (현재가: {ex.get_price()}원)")
+            # 유저가 매수할 투자소 번호 선택
             idx = int(input("매수할 투자소 번호 입력: "))
+            # 선택된 투자소의 시세 변동 이벤트 준비
+            evidence, reason_func, change = exchanges[idx].prepare_price_change()
+            print(f"[{exchanges[idx].name}] 근거: {evidence} → 3초 후 가격 반영됨...")
             amount = int(input("몇 개 살래? "))
-            if 0 <= idx < len(exchanges):
-                cost, price = exchanges[idx].buy(amount, user_money)
-                if cost > 0:
-                    user_money -= cost
-                    print(f"{round(cost, 2)}원 지불하고 {amount}개 매수함.")
-                    print(f"지출: -{round(cost, 2)}원 / 잔액: {round(user_money, 2)}원")
-                    print(f"매수 당시 가격: {round(price, 2)}원")
-                else:
-                    print("잔액 부족!")
-
+            time.sleep(3)
+            # 모든 투자소 시세 업데이트 (선택한 투자소는 준비된 이유/변동폭으로 반영)
+            # 유저가 고른 투자소 인덱스, 해당 투자소에 적용할 변동폭, 해당 투자소에 적용할 사유 함수
+            simulate_all_prices(exchanges, skip_idx=idx, selected_change=change, selected_func=reason_func)
+            cost, price = exchanges[idx].buy(amount, user_money)
+            if cost > 0:
+                user_money -= cost
+                print(f"{round(cost, 2)}원 지불하고 {amount}개 매수함.")
+                print(f"지출: -{round(cost, 2)}원 / 잔액: {round(user_money, 2)}원")
+                print(f"매수 당시 가격: {round(price, 2)}원")
+            else:
+                print("매수 실패")
 
         elif choice == "4":
-            # 매도: 투자소 선택, 수량 입력, 실제 매도 처리
-            simulate_all_prices(exchanges)
             for i, ex in enumerate(exchanges):
                 print(f"{i}. {ex.name} (보유량: {ex.holding})")
             idx = int(input("매도할 투자소 번호 입력: "))
+            # 해당 투자소의 가격 변동 근거 및 변화율을 미리 준비
+            evidence, reason_func, change = exchanges[idx].prepare_price_change()
+            print(f"[{exchanges[idx].name}] 근거: {evidence} → 3초 후 가격 반영됨...")
             amount = int(input("몇 개 팔래? "))
-            if 0 <= idx < len(exchanges):
-                income, price, profit = exchanges[idx].sell(amount)
-                if income > 0:
-                    user_money += income
-                    print(f"{round(income, 2)}원 받고 {amount}개 매도함.")
-                    print(f"수익: +{round(income, 2)}원 / 잔액: {round(user_money, 2)}원")
-                    print(f"매도 당시 가격: {round(price, 2)}원")
-                    print(f"손익: {'+' if profit >= 0 else ''}{round(profit, 2)}원")
-                else:
-                    print("보유량 부족!")
-
+            time.sleep(3)
+            # 전체 투자소의 가격을 업데이트, 선택된 투자소(`skip_idx`)에는 위에서 준비한 변동폭과 이유를 적용, 나머지 투자소는 랜덤하게 빠르게 변화시킴 (simulate_price_quick)
+            simulate_all_prices(exchanges, skip_idx=idx, selected_change=change, selected_func=reason_func)
+            # 선택한 투자소에서 실제 매도 로직 실행 → 매도금액(income), 현재가(price), 손익(profit) 반환
+            income, price, profit = exchanges[idx].sell(amount)
+            if income > 0:
+                user_money += income
+                print(f"{round(income, 2)}원 받고 {amount}개 매도함.")
+                print(f"수익: +{round(income, 2)}원 / 잔액: {round(user_money, 2)}원")
+                print(f"매도 당시 가격: {round(price, 2)}원")
+                print(f"손익: {'+' if profit >= 0 else ''}{round(profit, 2)}원")
+            else:
+                print("매도 실패")
 
         elif choice == "5":
-            # 내 자산 현황: 투자소별 평가금액, 현금 출력
+            for ex in exchanges:
+                ex.simulate_price_quick()
             show_all_status(exchanges)
             print(f"보유 현금은 {round(user_money, 2)}원입니다.")
-
 
         elif choice == "0":
             print("시뮬레이터를 종료합니다.")
             break
 
-
         else:
             print("잘못된 입력입니다. 다시 시도하세요.")
 
-
-# 프로그램 직접 실행 시 main() 호출
+# 프로그램 실행 시작점
 if __name__ == "__main__":
     main()
