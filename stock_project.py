@@ -1,4 +1,3 @@
-# 필요한 외부 라이브러리 임포트
 import random                       # 무작위 수 생성에 사용
 import pandas as pd                # 투자소 상태를 테이블로 보기 좋게 출력할 때 사용
 import matplotlib.pyplot as plt    # 가격 변동 그래프 그릴 때 사용
@@ -95,8 +94,8 @@ class Exchange:
             total_income = price * amount # 총 매도 금액
             total_quantity = self.holding + amount  # 기존 총 개수
             avg_buy_price = self.buy_price_total / total_quantity if total_quantity > 0 else 0 # 평균 매수 단가
-            profit = total_income - (avg_buy_price * amount) 
-            self.buy_price_total -= avg_buy_price * amount
+            profit = total_income - (avg_buy_price * amount) # 손익 계산
+            self.buy_price_total -= avg_buy_price * amount # 누적 매수 금액에서 매도한 금액 차감
             return total_income, price, profit
         return 0, price, 0
 
@@ -142,8 +141,8 @@ def show_chart(exchange, exchanges):
                 ex.simulate_price_quick()
         ax.clear()
         ax.set_title(f"{exchange.name} 실시간 캔들차트")
-        ax.set_xlabel("시간")
-        ax.set_ylabel("가격")
+        ax.set_xlabel("시간 (단위: 차트 프레임 인덱스)")
+        ax.set_ylabel("가격 (단위: 원)")
 
         opens = exchange.opens
         highs = exchange.highs
@@ -227,9 +226,7 @@ def main():
             print(f"[{exchanges[idx].name}] 근거: {evidence} → 3초 후 가격 반영됨...")
             amount = int(input("몇 개 팔래? "))
             time.sleep(3)
-            # 전체 투자소의 가격을 업데이트, 선택된 투자소(`skip_idx`)에는 위에서 준비한 변동폭과 이유를 적용, 나머지 투자소는 랜덤하게 빠르게 변화시킴 (simulate_price_quick)
             simulate_all_prices(exchanges, skip_idx=idx, selected_change=change, selected_func=reason_func)
-            # 선택한 투자소에서 실제 매도 로직 실행 → 매도금액(income), 현재가(price), 손익(profit) 반환
             income, price, profit = exchanges[idx].sell(amount)
             if income > 0:
                 user_money += income
