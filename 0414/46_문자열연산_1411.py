@@ -1,0 +1,10 @@
+text=input("문장 입력")
+print("대문자로 변환:", text.lower())
+print("소문자로 변환:", text.upper())
+print("문자열 길이:", len(text))
+print("공백 기준 단어 분리:", text.split())
+print("마침표 기준 분리:", text.split('.'))
+print("o의 첫 인덱스:", text.find('o'))
+print("o의 개수:", text.count('o'))
+print("Python을 AI로 변경:", text.replace("Python", "ai"))
+#Hello, I am studying Python

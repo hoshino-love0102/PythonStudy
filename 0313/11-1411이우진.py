@@ -1,0 +1,16 @@
+list1=['홍길동','일지매']
+print(f'현재 프로그래밍 수강 신청자는 {list1}입니다')
+name=str(input('추가할 학생 이름: '))
+list1.append(name)
+print(f'{name} 학생의 신청이 완료되었습니다.')
+print(f'현재 이 과목의 최종 신청자는 {list1}')
+name=str(input('철회할 학생 이름: '))
+list1.remove(name)
+print(f'{name} 학생의 수강 철회가 완료되었습니다')
+print(f'현재 이 과목의 최종 신청자는 {list1}')
+old_name=input('변경 전 이름: ')
+new_name=input('변경 후 이름: ')
+id=list1.index(old_name)
+list1[id]=new_name
+print(f'요청하신 대로 {old_name}을(를) {new_name}(으)로 변경하였습니다')
+print(f'현재 이 과목의 최종 신청자는 {list1}')

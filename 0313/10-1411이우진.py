@@ -1,0 +1,21 @@
+data=[30,10,20]
+print(f'현재 리스트: {data}')
+print(f'리스트 데이터 개수: {len(data)}')
+data.append(40)
+print(f'40 추가 후의 리스트: {data}')
+last=data.pop()
+print(f'리스트 마지막 데이터: {last}')
+print(f'추출 후 리스트: {data}')
+data.sort()
+print(f'오름차순 정렬: {data}')
+data.reverse()
+print(f'리스트 역순: {data}')
+print(f'데이터 20의 위치(index) {data.index(20)}')
+data.insert(2,222)
+print(f'index 2 위치에 222삽입 후의 리스트: {data}')
+data2=[77,88,77]
+data.extend(data2)
+print(f'data 리스트에 data2 리스트 연결:{data}')
+print(f'77 값의 개수: {data.count(77)}')
+del data[1]
+print(f'index 2위치의 데이터 삭제 후 리스트: {data}')

@@ -1,0 +1,13 @@
+stu1={'학반':105,'번호':20,'이름':'홍길동'}
+print(stu1['학반'])
+print(stu1['번호'])
+print(stu1['이름'])
+print(stu1.get('이름'))
+print(stu1.get('주소'))
+# print(stu1['주소'])
+print(stu1.keys())
+print(list(stu1.keys()))
+print(stu1.values())
+print(list(stu1.values()))
+print('이름' in stu1)
+print('주소' in stu1)
